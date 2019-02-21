@@ -46,38 +46,34 @@ MongoClient.connect(url, function(err, client) {
   });
 
   router.get('/:id', function(req, res, next) {
-    collection.find({"genius_id": parseInt(req.params.id)}).toArray(function(err, docs) {
-      const songs = docs.map(doc => ({
+    collection.findOne({"genius_id": parseInt(req.params.id)}, function(err, doc) {
+      const song = {
         title: doc.title,
         lyrics: doc.text,
         id: doc.genius_id
-      }))
-      
-      let foundSong = songs.filter(song => song.id == req.params.id)[0];
+      }
 
       let templateVars = {
         id: req.params.id,
-        title: foundSong.title,
-        lyrics: foundSong.lyrics
+        title: song.title,
+        lyrics: song.lyrics
       }
       res.render('lyric', templateVars);
     });
   });
 
   router.get('/:id/edit', function(req, res, next) {
-    collection.find({"genius_id": parseInt(req.params.id)}).toArray(function(err, docs) {
-      const songs = docs.map(doc => ({
+    collection.find({"genius_id": parseInt(req.params.id)}, function(err, doc) {
+      const song = {
         title: doc.title,
         lyrics: doc.text,
         id: doc.genius_id
-      }))
-      
-      let foundSong = songs.filter(song => song.id == req.params.id)[0];
+      }
 
       let templateVars = {
         id: req.params.id,
-        title: foundSong.title,
-        lyrics: foundSong.lyrics
+        title: song.title,
+        lyrics: song.lyrics
       }
       res.render('lyric_edit', templateVars);
     });
@@ -87,8 +83,7 @@ MongoClient.connect(url, function(err, client) {
     console.log(req.body)
     collection.updateOne({"genius_id": parseInt(req.params.id)}
       , { $set: { text : req.body.edited_lyric } }, function(err, result) {
-      assert.equal(err, null);
-      assert.equal(1, result.result.n);
+
       res.redirect(`/lyrics/${req.params.id}`);
     });  
   });
